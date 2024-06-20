@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Borne Data Table</title>
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename = 'css/stylecrud.css') }}" />
+        <style>
+            .lds-ellipsis {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+            }
+            .lds-ellipsis div {
+            position: absolute;
+            top: 33px;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: #5cb85c;
+            animation-timing-function: cubic-bezier(0, 1, 1, 0);
+            }
+            .lds-ellipsis div:nth-child(1) {
+            left: 8px;
+            animation: lds-ellipsis1 0.6s infinite;
+            }
+            .lds-ellipsis div:nth-child(2) {
+            left: 8px;
+            animation: lds-ellipsis2 0.6s infinite;
+            }
+            .lds-ellipsis div:nth-child(3) {
+            left: 32px;
+            animation: lds-ellipsis2 0.6s infinite;
+            }
+            .lds-ellipsis div:nth-child(4) {
+            left: 56px;
+            animation: lds-ellipsis3 0.6s infinite;
+            }
+            @keyframes lds-ellipsis1 {
+            0% {
+                transform: scale(0);
+            }
+            100% {
+                transform: scale(1);
+            }
+            }
+            @keyframes lds-ellipsis3 {
+            0% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(0);
+            }
+            }
+            @keyframes lds-ellipsis2 {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(24px, 0);
+            }
+            }      
+        </style>
+    </head>
+    <body>
+        {% block content %}
+            <!-- nav bar -->
+            <nav class="navbar navbar-dark bg-primary" style="border-radius: 0!important; display: flex; justify-content: space-between; align-items: center;">
+                <a class="logo" href="{{ url_for('home') }}" style="width: 96px;">
+                    <img  title="Logo Progistack Biometric" src="{{ url_for('static', filename='images/progistack-biometric.png') }}">
+                </a>
+                <div id="navbarsExample01">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('home') }}">Accueil</a>
+                            <a class="nav-link" href="{{url_for('borne_manager')}}">Liste des Bornes</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>    
+            <!-- nav bar -->
+            <div id="content_block">
+                <div class="container">
+                    <div class="table-responsive">
+                        <div class="table-wrapper">
+                            <div class="table-title">
+                                <div class="row align-items-center" style="display: flex; align-items: center; padding-right: 25px;">
+                                    <div class="col-sm-8">
+                                        <h2>Liste des bornes</b></h2>
+                                    </div>
+                                    <div class="col-4 btnadd">
+                                        <a href="#registerNewBorne" class="btn btn-success" data-toggle="modal" style="width: max-content; display: flex; justify-content: space-around; align-items: center; padding: 10px 12px;">
+                                            <i class="material-icons">&#xE147;</i>
+                                            <span style="margin-left: 8px;">Ajouter une borne</span>
+                                        </a>
+                                        <div class="search-box">
+                                            <i class="material-icons">&#xE8B6;</i>
+                                            <input v-model="search_query" type="text" @input="search" class="form-control" placeholder="Search&hellip;" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <table class="table table-striped table-hover table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>
+                                            Adresse IP<i class="fa fa-sort"></i>
+                                        </th>
+                                        <th>Port</th>
+                                        <th>
+                                            Emplacement <i class="fa fa-sort"></i>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="item,index in bornes">
+                                        <td>${ index + 1 }</td>
+                                        <td>${ item.borne_ip }</td>
+                                        <td>${ item.borne_port }</td>
+                                        <td>${ item.borne_position }</td>
+                                        <td>
+                                            <!-- <a href="#" class="view" title="View" data-toggle="tooltip"><i class="material-icons">&#xE417;</i></a> -->
+                                            <a href="#updateBorne" @click.prevent="setUpdateBorne(item)" class="edit" title="Modifier" data-toggle="modal"><i class="material-icons">&#xE254;</i></a>
+                                            <a href="#deleteBorne" @click.prevent="setDeleteBorne(item.borne_id)" class="delete" title="Supprimer" data-toggle="modal"><i class="material-icons">&#xE872;</i></a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="registerNewBorne" class="modal fade">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form>
+                                <div class="modal-header">
+                                    <h4 class="modal-title" style="display: inline-block;">Ajouter Borne</h4>
+                                    <button type="button" class="close" style="font-size: 30px;" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label>Adresse IP</label>
+                                        <input v-model="borne_ip" style="border-radius: 5px; padding: 10px 15px; height: fit-content;" placeholder="Ex: 127.0.0.1" id="borne_ip" type="text" class="form-control" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Port</label>
+                                        <input v-model="borne_port" style="border-radius: 5px; padding: 10px 15px; height: fit-content;" placeholder="Ex: 80" id="port" type="number" class="form-control" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="borne_position">Emplacement</label>
+                                        <div class="lieuadd">
+                                            <select v-model.lazy="borne_position" style="border-radius: 5px; padding: 10px 15px; height: fit-content;" id="borne_position" class="addlieu">
+                                                <option value=""></option>
+                                                <option value="entree">Entrée</option>
+                                                <option value="sortie">Sortie</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <input type="button" class="btn btn-default" data-dismiss="modal" value="Annuler" />
+                                    <input v-if="!is_create_submited" type="submit" @click.prevent="createBorne" class="btn btn-success" value="Enregistrer" />
+                                    <div v-if="is_create_submited" class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div id="updateBorne" class="modal fade">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form action="/crud" method="POST">
+                                <div class="modal-header">
+                                    <h4 class="modal-title" style="display: inline-block;">Modifier la Borne</h4>
+                                    <button type="button" style="font-size: 30px;" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label>Adresse IP</label>
+                                        <input v-model="as_update.borne_ip" style="border-radius: 5px; padding: 10px 15px; height: fit-content;" placeholder="ex: 127.0.0.1" type="text" class="form-control" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Port</label>
+                                        <input v-model="as_update.borne_port" style="border-radius: 5px; padding: 10px 15px; height: fit-content;" placeholder="ex: 80" type="number" class="form-control" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="password">Emplacement</label>
+                                        <div class="lieuadd">
+                                            <select v-model.lazy="as_update.borne_position" style="border-radius: 5px; padding: 10px 15px; height: fit-content;" class="addlieu">
+                                                <option value=""></option>
+                                                <option value="entree">Entrée</option>
+                                                <option value="sortie">Sortie</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <input type="button" class="btn btn-default" data-dismiss="modal" value="Annuler" />
+                                    <input v-if="!is_update_submited" type="submit" @click.prevent="saveUpdateBorne" class="btn btn-success" value="Enregistrer" />
+                                    <div v-if="is_update_submited" class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div id="deleteBorne" class="modal fade">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form>
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Supprimer Borne</h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Êtes-vous sûr de vouloir supprimer cet enregistrement ?</p>
+                                    <p class="text-warning">
+                                    <small>Cette action ne peut être annulée.</small>
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <input type="button" class="btn btn-default" data-dismiss="modal" value="Annuler" />
+                                    <input type="submit" @click.prevent="deleteBorne" class="btn btn-danger" value="Supprimer" />
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endblock %}
+
+        <script src="{{ url_for('static', filename = 'js/tooltip.js') }}"></script>
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <!-- <script src="https://cdn.jsdelivr.net/npm/vue@3.2.31/dist/vue.global.prod.min.js"></script> -->
+        <script src="https://cdn.jsdelivr.net/npm/axios@0.24.0/dist/axios.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            const app = Vue.createApp({
+                data() {
+                    return {
+                        borne_ip: '',
+                        borne_port: '4370',
+                        borne_position: '',
+                        as_update: {
+                            borne_id: '',
+                            borne_ip: '',
+                            borne_port: '4370',
+                            borne_position: ''
+                        },
+                        borne_delete_id: '',
+                        bornes: [],
+                        bornes_base: [
+                            {% for item in all_post %}
+                                {
+                                    borne_id: '{{ item["_id"] }}',
+                                    borne_ip: '{{ item["adresse_ip"] }}',
+                                    borne_port: '{{ item["port"] }}',
+                                    borne_position: '{{ item["emplacement"] }}',
+                                },
+                            {% endfor %}
+                        ],
+                        is_create_submited: false,
+                        is_update_submited: false,
+                        is_delete_submited: false,
+                        search_query: "",
+                    }
+                },
+                delimiters: ['${', '}'],
+                mounted(){
+                    this.bornes = this.bornes_base;
+                },
+                methods: {
+                    search(){
+                        let curr = [];
+                        if (this.search_query){
+                            for (let i=0; i < this.bornes_base.length; i++){
+                                if (this.bornes_base[i].borne_ip.toLocaleLowerCase().indexOf(this.search_query.toLocaleLowerCase()) != -1
+                                    || this.bornes_base[i].borne_port.toLocaleLowerCase().indexOf(this.search_query.toLocaleLowerCase()) != -1)
+                                {
+                                    curr.push(this.bornes_base[i])
+                                }
+                            }
+                            this.bornes = curr;
+                        }
+                        else {
+                            this.bornes = this.bornes_base;
+                        }
+                    },
+                    setUpdateBorne(item){
+                        this.as_update = item
+                    },
+                    setDeleteBorne(idt){
+                        this.borne_delete_id = idt;
+                    },
+                    deleteBorne(){
+                        if (!this.borne_delete_id) {
+                            Swal.fire({
+                                icon: 'warning',
+                                html: "<h4>Veuillez selectionner la borne a supprimer</h4>"
+                            })
+                        } else {
+                            this.is_delete_submited = true
+                            let formData = new FormData()
+                            formData.append('id', this.borne_delete_id)
+                            axios.post("/delete_borne", formData)
+                            .then((response) => {
+                                if (response.data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        html: response.data.message,
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    })
+                                    window.location.reload()
+                                    this.is_delete_submited = false
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        html: response.data.message
+                                    })
+                                    console.log(response.data)
+                                    this.is_delete_submited = false
+                                }
+                            })
+                            .catch((err) => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Oops...',
+                                    text: 'Une erreur est survenu veuillez reessayer',
+                                    footer: "<a href>Les développeurs s'excusent pour les désagréments.</a>",
+                                    timer: 3000
+                                })
+                                console.log(err)
+                                this.is_delete_submited = false
+                            })
+                        }
+                    },
+                    saveUpdateBorne(){
+                        if (!this.as_update.borne_ip) {
+                            Swal.fire({
+                                icon: 'warning',
+                                html: "<h4>Veuillez renseigner l'IP de la borne</h4>"
+                            })
+                        }
+                        else if (!this.as_update.borne_position) {
+                            Swal.fire({
+                                icon: 'warning',
+                                html: '<h4>Indiquez la position de la borne (Entré/Sortie)</h4>'
+                            })
+                        }
+                        else {
+                            this.is_update_submited = true
+                            let formData = new FormData()
+                            formData.append('id', this.as_update.borne_id)
+                            formData.append('borne_ip', this.as_update.borne_ip)
+                            formData.append('port', this.as_update.borne_port)
+                            formData.append('emplacement', this.as_update.borne_position)
+                            axios.post("/borne_manager", formData)
+                            .then((response) => {
+                                if (response.data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        html: response.data.message,
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    })
+                                    window.location.reload()
+                                    this.is_update_submited = false
+                                } else {
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        html: response.data.message
+                                    })
+                                    console.log(response.data)
+                                    this.is_update_submited = false
+                                }
+                            })
+                            .catch((err) => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Oops...',
+                                    text: 'Une erreur est survenu veuillez reessayer',
+                                    footer: "<a href>Les développeurs s'excusent pour les désagréments.</a>",
+                                    timer: 3000
+                                })
+                                console.log(err)
+                                this.is_update_submited = false
+                            })
+                        }
+                    },
+                    createBorne() {
+                        if (!this.borne_ip) {
+                            Swal.fire({
+                                icon: 'warning',
+                                html: "<h4>Veuillez renseigner l'IP de la borne</h4>"
+                            })
+                        }
+                        else if (!this.borne_position) {
+                            Swal.fire({
+                                icon: 'warning',
+                                html: '<h4>Indiquez la position de la borne (Entré/Sortie)</h4>'
+                            })
+                        }
+                        else {
+                            this.is_create_submited = true
+                            let formData = new FormData()
+                            formData.append('borne_ip', this.borne_ip)
+                            formData.append('port', this.borne_port)
+                            formData.append('emplacement', this.borne_position)
+                            axios.post("/borne_manager", formData)
+                            .then((response) => {
+                                if (response.data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        html: response.data.message,
+                                        // showConfirmButton: false,
+                                        // timer: 1500
+                                    }).then((e) => {
+                                        window.location.reload()
+                                    })
+                                    this.is_create_submited = false
+                                }
+                                else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        html: response.data.message
+                                    })
+                                    console.log("response", response)
+                                    this.is_create_submited = false
+                                }
+                            })
+                            .catch((err) => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Oops...',
+                                    text: 'Une erreur est survenu veuillez reessayer',
+                                    footer: "<a href>Les développeurs s'excusent pour les désagréments.</a>",
+                                    timer: 3000
+                                })
+                                console.log("err", err)
+                                this.is_create_submited = false
+                            })
+                        }
+                    }
+                }
+            })
+            app.mount('#content_block')
+        </script>
+    </body>
+</html>

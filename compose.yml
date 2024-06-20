@@ -1,0 +1,32 @@
+version: "3"
+services:
+  web:
+    image: python:3.9-bullseye
+    ports:
+      - "9000:5000"
+      # - "0:5000"
+      # - "4370:4370"
+    working_dir: /app
+    volumes:
+      - ./app:/app
+      - flask_db:/app/instance
+    restart: always
+    environment:
+      FLASK_APP: app.py
+      FLASK_ENV: production
+    command: >
+      sh -c "pip install --upgrade pip setuptools && 
+      pip install -r requirements.txt &&
+      if [ -d migrations ]; then
+        flask db stamp head &&
+        flask db migrate && 
+        flask db upgrade &&
+        python3 app.py;
+      else
+        flask db init &&
+        flask db migrate && 
+        flask db upgrade &&
+        python3 app.py;
+      fi"
+volumes:
+  flask_db:
