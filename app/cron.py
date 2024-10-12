@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 from zk import ZK as ZK_MANAGER
 from models import Borne, app
@@ -33,8 +33,12 @@ def get_all_datas():
         
         for borne in all_bornes:
             _logging.error(f"{borne.emplacement} => {borne.adresse_ip}")
+	   
+            adresseip = borne.adresse_ip
+
 
             _emplacement = emplacement.get(borne.emplacement)
+
             if not _emplacement: continue
 
             current_borne_datas = []
@@ -55,9 +59,9 @@ def get_all_datas():
                     attendance = borne_connection.get_attendance()
                     for each in attendance:
                         today = datetime.today().strftime("%Y-%m-%d")
+                        #yesterday = (datetime.today() - timedelta(days=3)).strftime("%Y-%m-%d")
                         pointage_date = each.timestamp.strftime("%Y-%m-%d")
-                        #_logging.error(f"each...{each}")
-
+           
                         
                         if pointage_date == today:
                             atten_time = each.timestamp.strftime("%Y-%m-%d %H:%M:%S")
@@ -68,6 +72,7 @@ def get_all_datas():
                                 "atten_time": atten_time,
                                 "pointage_heur": each.timestamp.hour + each.timestamp.minute / 60,
                                 "pointage_date": pointage_date,
+                                "adresse_ip": adresseip
                             }
                             current_borne_datas.append(new_datas)
 
